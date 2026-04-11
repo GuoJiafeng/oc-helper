@@ -606,6 +606,7 @@ async function interactiveOcProvider(): Promise<void> {
     } catch {}
     console.log(chalk.gray(t("ocProviderRunning")));
     runOpenCodeProvidersLogin();
+    await pause();
     return;
   }
 
@@ -617,6 +618,7 @@ async function interactiveOcProvider(): Promise<void> {
     } catch {}
     console.log(chalk.gray(t("ocProviderRunning")));
     runOpenCodeProvidersLogout();
+    await pause();
     return;
   }
 }
