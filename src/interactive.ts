@@ -9,12 +9,15 @@ import {
 } from "./config.js";
 import {
   formatContextSize,
+  formatError,
   formatJSON,
   formatTable,
   formatWarning,
 } from "./display.js";
 import { t, setLang, getLang, type Lang } from "./i18n.js";
 import { createBackup, listBackups, restoreBackup, deleteBackup } from "./backup.js";
+import { isOpenCodeAvailable, runOpenCodeProvidersList, runOpenCodeProvidersLogin, runOpenCodeProvidersLogout } from "./oc-provider.js";
+import { getCurrentVersion, checkForUpdate } from "./update-check.js";
 import type {
   CollectedModel,
   OhMyAgentEntry,
@@ -22,7 +25,7 @@ import type {
   ModelConfig,
 } from "./types.js";
 
-type MenuAction = "list" | "model-set" | "model-remove" | "model-view" | "provider" | "config" | "backup" | "lang" | "back" | "quit";
+type MenuAction = "list" | "model-set" | "model-remove" | "model-view" | "provider" | "oc-provider" | "config" | "backup" | "lang" | "back" | "quit";
 
 async function pause(): Promise<void> {
   await input({ message: chalk.gray(t("pressEnter")), default: "" });
@@ -37,6 +40,7 @@ async function mainMenu(): Promise<MenuAction> {
       { name: t("mainMenuModelRemove"), value: "model-remove", description: t("mainMenuModelRemoveDesc") },
       { name: t("mainMenuModelView"), value: "model-view", description: t("mainMenuModelViewDesc") },
       { name: t("mainMenuProvider"), value: "provider", description: t("mainMenuProviderDesc") },
+      { name: t("ocProviderTitle"), value: "oc-provider", description: t("ocProviderMenuDesc") },
       { name: t("mainMenuConfig"), value: "config", description: t("mainMenuConfigDesc") },
       { name: t("backupCreate"), value: "backup", description: t("backupCreateDesc") },
       { name: t("langSwitch"), value: "lang", description: t("langSwitchDesc") },
@@ -563,6 +567,67 @@ async function interactiveBackup(): Promise<void> {
   }
 }
 
+async function interactiveOcProvider(): Promise<void> {
+  if (!isOpenCodeAvailable()) {
+    console.log(formatWarning(t("ocProviderNotFound")));
+    await pause();
+    return;
+  }
+
+  const action = await select<string>({
+    message: t("ocProviderTitle"),
+    choices: [
+      { name: t("ocProviderList"), value: "list" },
+      { name: t("ocProviderLogin"), value: "login" },
+      { name: t("ocProviderLogout"), value: "logout" },
+      { name: t("ocProviderBack"), value: "back" },
+    ],
+    pageSize: 20,
+  });
+
+  if (action === "back") return;
+
+  if (action === "list") {
+    try {
+      console.log(chalk.gray(t("ocProviderRunning")));
+      const output = runOpenCodeProvidersList();
+      console.log(output);
+      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
+    } catch (err) {
+      console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
+    }
+    await pause();
+    return;
+  }
+
+  if (action === "login") {
+    const url = await input({ message: t("ocProviderLoginUrl"), default: "" });
+    try {
+      console.log(chalk.gray(t("ocProviderRunning")));
+      const output = runOpenCodeProvidersLogin(url || undefined);
+      if (output) console.log(output);
+      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
+    } catch (err) {
+      console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
+    }
+    await pause();
+    return;
+  }
+
+  if (action === "logout") {
+    try {
+      console.log(chalk.gray(t("ocProviderRunning")));
+      const output = runOpenCodeProvidersLogout();
+      if (output) console.log(output);
+      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
+    } catch (err) {
+      console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
+    }
+    await pause();
+    return;
+  }
+}
+
 async function interactiveConfig(): Promise<void> {
   const action = await select<string>({
     message: t("configTitle"),
@@ -647,11 +712,19 @@ async function interactiveLangSwitch(): Promise<void> {
 }
 
 export async function runInteractive(): Promise<void> {
-  console.log(chalk.bold(`\n  ${chalk.cyan("OC Helper")}\n`));
+  const currentVersion = getCurrentVersion();
+  checkForUpdate(currentVersion).then((latest) => {
+    if (latest) {
+      console.log(chalk.yellow(t("updateAvailable", { current: currentVersion, latest })));
+      console.log();
+    }
+  }).catch(() => {});
 
   let running = true;
   while (running) {
     try {
+      console.clear();
+      console.log(chalk.bold(`  ${chalk.cyan("OC Helper")} ${chalk.gray(`v${currentVersion}`)}\n`));
       const action = await mainMenu();
 
       switch (action) {
@@ -669,6 +742,9 @@ export async function runInteractive(): Promise<void> {
           break;
         case "provider":
           await interactiveProvider();
+          break;
+        case "oc-provider":
+          await interactiveOcProvider();
           break;
         case "config":
           await interactiveConfig();

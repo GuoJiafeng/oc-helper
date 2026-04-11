@@ -22,6 +22,8 @@ import { t } from "./i18n.js";
 import { interactiveModelSwitch } from "./switch.js";
 import { runInteractive } from "./interactive.js";
 import { createBackup, listBackups, restoreBackup, deleteBackup } from "./backup.js";
+import { isOpenCodeAvailable, runOpenCodeProvidersList, runOpenCodeProvidersLogin, runOpenCodeProvidersLogout } from "./oc-provider.js";
+import { getCurrentVersion, checkForUpdate } from "./update-check.js";
 import type {
   CollectedModel,
   OhMyAgentEntry,
@@ -570,6 +572,57 @@ function main(): void {
     .action((id: string) => {
       deleteBackup(id);
       printSuccess(t("backupDeleted", { id: chalk.bold(id) }));
+    });
+
+  const ocProviderCommand = program.command("oc-provider").description("Manage OpenCode built-in providers via opencode CLI");
+
+  ocProviderCommand
+    .command("list")
+    .description("List built-in providers and credentials")
+    .action(() => {
+      if (!isOpenCodeAvailable()) {
+        throw new Error(t("ocProviderNotFound"));
+      }
+      try {
+        const output = runOpenCodeProvidersList();
+        console.log(output);
+      } catch (err) {
+        throw new Error(t("ocProviderFailed", { error: (err as Error).message }));
+      }
+    });
+
+  ocProviderCommand
+    .command("login")
+    .description("Login to a provider (configure API key)")
+    .argument("[url]", "Provider URL (e.g. https://api.openai.com)")
+    .action((url?: string) => {
+      if (!isOpenCodeAvailable()) {
+        throw new Error(t("ocProviderNotFound"));
+      }
+      try {
+        const output = runOpenCodeProvidersLogin(url);
+        if (output) console.log(output);
+        printSuccess(t("ocProviderSuccess"));
+      } catch (err) {
+        throw new Error(t("ocProviderFailed", { error: (err as Error).message }));
+      }
+    });
+
+  ocProviderCommand
+    .command("logout")
+    .description("Logout from a provider (remove credentials)")
+    .argument("[provider]", "Provider name to logout")
+    .action((provider?: string) => {
+      if (!isOpenCodeAvailable()) {
+        throw new Error(t("ocProviderNotFound"));
+      }
+      try {
+        const output = runOpenCodeProvidersLogout(provider);
+        if (output) console.log(output);
+        printSuccess(t("ocProviderSuccess"));
+      } catch (err) {
+        throw new Error(t("ocProviderFailed", { error: (err as Error).message }));
+      }
     });
 
   program

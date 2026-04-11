@@ -169,6 +169,25 @@ type Strings = {
   backupColSize: string;
   backupSelectRestore: string;
   backupSelectDelete: string;
+
+  ocProviderTitle: string;
+  ocProviderList: string;
+  ocProviderLogin: string;
+  ocProviderLogout: string;
+  ocProviderBack: string;
+  ocProviderLoginUrl: string;
+  ocProviderLogoutSelect: string;
+  ocProviderRunning: string;
+  ocProviderSuccess: string;
+  ocProviderFailed: string;
+  ocProviderNotFound: string;
+  ocProviderMenuDesc: string;
+
+  updateAvailable: string;
+  updateCurrent: string;
+  updateNewer: string;
+  updateLatest: string;
+  updateCheckFailed: string;
 };
 
 const zh: Strings = {
@@ -338,6 +357,25 @@ const zh: Strings = {
   backupColSize: "大小",
   backupSelectRestore: "选择要恢复的备份：",
   backupSelectDelete: "选择要删除的备份：",
+
+  ocProviderTitle: "OpenCode 内置提供商管理：",
+  ocProviderList: "查看内置提供商列表",
+  ocProviderLogin: "登录提供商（配置 API 密钥）",
+  ocProviderLogout: "登出提供商（移除凭据）",
+  ocProviderBack: "返回",
+  ocProviderLoginUrl: "提供商 URL（如 https://api.openai.com）：",
+  ocProviderLogoutSelect: "选择要登出的提供商：",
+  ocProviderRunning: "正在执行...",
+  ocProviderSuccess: "命令执行完成。",
+  ocProviderFailed: "命令执行失败：{error}",
+  ocProviderNotFound: "未找到 opencode 命令，请确认已安装 OpenCode。",
+  ocProviderMenuDesc: "通过 opencode providers 命令管理内置提供商",
+
+  updateAvailable: "🚀 新版本可用：{current} → {latest}，运行 npm i -g oc-helper-cli 更新",
+  updateCurrent: "当前版本：{version}",
+  updateNewer: "已是最新版本 ✓",
+  updateLatest: "检测更新中...",
+  updateCheckFailed: "检测更新失败",
 };
 
 const en: Strings = {
@@ -507,6 +545,25 @@ const en: Strings = {
   backupColSize: "Size",
   backupSelectRestore: "Select backup to restore:",
   backupSelectDelete: "Select backup to delete:",
+
+  ocProviderTitle: "OpenCode built-in provider management:",
+  ocProviderList: "List built-in providers",
+  ocProviderLogin: "Login to a provider (configure API key)",
+  ocProviderLogout: "Logout from a provider (remove credentials)",
+  ocProviderBack: "Back",
+  ocProviderLoginUrl: "Provider URL (e.g. https://api.openai.com):",
+  ocProviderLogoutSelect: "Select provider to logout:",
+  ocProviderRunning: "Running...",
+  ocProviderSuccess: "Command completed.",
+  ocProviderFailed: "Command failed: {error}",
+  ocProviderNotFound: "opencode command not found. Please install OpenCode first.",
+  ocProviderMenuDesc: "Manage built-in providers via opencode providers command",
+
+  updateAvailable: "🚀 Update available: {current} → {latest}. Run: npm i -g oc-helper-cli",
+  updateCurrent: "Current version: {version}",
+  updateNewer: "Already up to date ✓",
+  updateLatest: "Checking for updates...",
+  updateCheckFailed: "Update check failed",
 };
 
 const translations: Record<Lang, Strings> = { zh, en };
