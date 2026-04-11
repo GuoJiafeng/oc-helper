@@ -1,6 +1,6 @@
 {
   "name": "oc-helper-cli",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "OC Helper - CLI tool to manage OpenCode and Oh-My-OpenCode configuration with interactive menus, backup & restore, Chinese/English bilingual interface",
   "type": "module",
   "bin": {

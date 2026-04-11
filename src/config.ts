@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import type { CollectedModel, OpenCodeConfig, OhMyOpenAgentConfig } from "./types.js";
+import { execFileSync } from "node:child_process";
+import type { CollectedModel, OpenCodeConfig, OhMyOpenAgentConfig, ModelConfig } from "./types.js";
 
 const CONFIG_DIR = join(homedir(), ".config", "opencode");
 
@@ -45,12 +46,37 @@ export function writeOhMyConfig(config: OhMyOpenAgentConfig): void {
 
 export function getAllModels(): CollectedModel[] {
   const config = readOpenCodeConfig();
+  const seen = new Set<string>();
   const models: CollectedModel[] = [];
+
   for (const [provider, providerConfig] of Object.entries(config.provider ?? {})) {
     for (const [modelId, modelConfig] of Object.entries(providerConfig.models ?? {})) {
+      const key = `${provider}/${modelId}`;
+      seen.add(key);
       models.push({ provider, modelId, modelConfig });
     }
   }
+
+  try {
+    const output = execFileSync("opencode", ["models"], {
+      stdio: "pipe",
+      timeout: 10000,
+      encoding: "utf-8",
+    });
+    for (const line of output.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.includes("/")) continue;
+      const idx = trimmed.indexOf("/");
+      const provider = trimmed.slice(0, idx);
+      const modelId = trimmed.slice(idx + 1);
+      const key = `${provider}/${modelId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const emptyConfig: ModelConfig = {};
+      models.push({ provider, modelId, modelConfig: emptyConfig });
+    }
+  } catch {}
+
   return models;
 }
 
