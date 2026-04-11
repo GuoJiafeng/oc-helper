@@ -589,10 +589,8 @@ async function interactiveOcProvider(): Promise<void> {
 
   if (action === "list") {
     try {
-      console.log(chalk.gray(t("ocProviderRunning")));
       const output = runOpenCodeProvidersList();
       console.log(output);
-      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
     } catch (err) {
       console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
     }
@@ -601,29 +599,24 @@ async function interactiveOcProvider(): Promise<void> {
   }
 
   if (action === "login") {
-    const url = await input({ message: t("ocProviderLoginUrl"), default: "" });
     try {
-      console.log(chalk.gray(t("ocProviderRunning")));
-      const output = runOpenCodeProvidersLogin(url || undefined);
-      if (output) console.log(output);
-      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
-    } catch (err) {
-      console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
-    }
-    await pause();
+      const output = runOpenCodeProvidersList();
+      console.log(output);
+      console.log();
+    } catch {}
+    console.log(chalk.gray(t("ocProviderRunning")));
+    runOpenCodeProvidersLogin();
     return;
   }
 
   if (action === "logout") {
     try {
-      console.log(chalk.gray(t("ocProviderRunning")));
-      const output = runOpenCodeProvidersLogout();
-      if (output) console.log(output);
-      console.log(`${chalk.green("✓")} ${t("ocProviderSuccess")}`);
-    } catch (err) {
-      console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
-    }
-    await pause();
+      const output = runOpenCodeProvidersList();
+      console.log(output);
+      console.log();
+    } catch {}
+    console.log(chalk.gray(t("ocProviderRunning")));
+    runOpenCodeProvidersLogout();
     return;
   }
 }

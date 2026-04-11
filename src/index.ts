@@ -593,36 +593,22 @@ function main(): void {
 
   ocProviderCommand
     .command("login")
-    .description("Login to a provider (configure API key)")
-    .argument("[url]", "Provider URL (e.g. https://api.openai.com)")
-    .action((url?: string) => {
+    .description("Login to a provider (interactive)")
+    .action(() => {
       if (!isOpenCodeAvailable()) {
         throw new Error(t("ocProviderNotFound"));
       }
-      try {
-        const output = runOpenCodeProvidersLogin(url);
-        if (output) console.log(output);
-        printSuccess(t("ocProviderSuccess"));
-      } catch (err) {
-        throw new Error(t("ocProviderFailed", { error: (err as Error).message }));
-      }
+      runOpenCodeProvidersLogin();
     });
 
   ocProviderCommand
     .command("logout")
-    .description("Logout from a provider (remove credentials)")
-    .argument("[provider]", "Provider name to logout")
-    .action((provider?: string) => {
+    .description("Logout from a provider (interactive)")
+    .action(() => {
       if (!isOpenCodeAvailable()) {
         throw new Error(t("ocProviderNotFound"));
       }
-      try {
-        const output = runOpenCodeProvidersLogout(provider);
-        if (output) console.log(output);
-        printSuccess(t("ocProviderSuccess"));
-      } catch (err) {
-        throw new Error(t("ocProviderFailed", { error: (err as Error).message }));
-      }
+      runOpenCodeProvidersLogout();
     });
 
   program

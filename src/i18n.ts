@@ -175,8 +175,6 @@ type Strings = {
   ocProviderLogin: string;
   ocProviderLogout: string;
   ocProviderBack: string;
-  ocProviderLoginUrl: string;
-  ocProviderLogoutSelect: string;
   ocProviderRunning: string;
   ocProviderSuccess: string;
   ocProviderFailed: string;
@@ -358,13 +356,11 @@ const zh: Strings = {
   backupSelectRestore: "选择要恢复的备份：",
   backupSelectDelete: "选择要删除的备份：",
 
-  ocProviderTitle: "OpenCode 内置提供商管理：",
+  ocProviderTitle: "OpenCode 内置提供商管理",
   ocProviderList: "查看内置提供商列表",
-  ocProviderLogin: "登录提供商（配置 API 密钥）",
-  ocProviderLogout: "登出提供商（移除凭据）",
+  ocProviderLogin: "登录提供商",
+  ocProviderLogout: "登出提供商",
   ocProviderBack: "返回",
-  ocProviderLoginUrl: "提供商 URL（如 https://api.openai.com）：",
-  ocProviderLogoutSelect: "选择要登出的提供商：",
   ocProviderRunning: "正在执行...",
   ocProviderSuccess: "命令执行完成。",
   ocProviderFailed: "命令执行失败：{error}",
@@ -546,13 +542,11 @@ const en: Strings = {
   backupSelectRestore: "Select backup to restore:",
   backupSelectDelete: "Select backup to delete:",
 
-  ocProviderTitle: "OpenCode built-in provider management:",
+  ocProviderTitle: "OpenCode built-in provider management",
   ocProviderList: "List built-in providers",
-  ocProviderLogin: "Login to a provider (configure API key)",
-  ocProviderLogout: "Logout from a provider (remove credentials)",
+  ocProviderLogin: "Login to a provider",
+  ocProviderLogout: "Logout from a provider",
   ocProviderBack: "Back",
-  ocProviderLoginUrl: "Provider URL (e.g. https://api.openai.com):",
-  ocProviderLogoutSelect: "Select provider to logout:",
   ocProviderRunning: "Running...",
   ocProviderSuccess: "Command completed.",
   ocProviderFailed: "Command failed: {error}",
