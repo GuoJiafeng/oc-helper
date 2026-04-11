@@ -44,9 +44,9 @@ async function pause(): Promise<void> {
   await input({ message: chalk.gray(t("pressEnter")), default: "" });
 }
 
-async function mainMenu(): Promise<MenuAction> {
+async function mainMenu(version: string): Promise<MenuAction> {
   return select<MenuAction>({
-    message: chalk.bold(t("mainMenuTitle")),
+    message: chalk.bold(`  ${chalk.cyan("OC Helper")} ${chalk.gray(`v${version}`)}\n\n${t("mainMenuTitle")}`),
     choices: [
       { name: t("mainMenuList"), value: "list", description: t("mainMenuListDesc") },
       { name: t("mainMenuModelSet"), value: "model-set", description: t("mainMenuModelSetDesc") },
@@ -197,12 +197,17 @@ async function interactiveModelSet(): Promise<void> {
 
   const modelChoice = await select<string>({
     message: t("selectNewModel", { type: t(targetType as "agent" | "category"), name: targetName }),
-    choices: models.map((m: CollectedModel) => ({
-      name: `${chalk.cyan(m.provider)}/${m.modelId}${m.modelConfig.name ? chalk.gray(` (${m.modelConfig.name})`) : ""}`,
-      value: `${m.provider}/${m.modelId}`,
-    })),
+    choices: [
+      ...models.map((m: CollectedModel) => ({
+        name: `${chalk.cyan(m.provider)}/${m.modelId}${m.modelConfig.name ? chalk.gray(` (${m.modelConfig.name})`) : ""}`,
+        value: `${m.provider}/${m.modelId}`,
+      })),
+      { name: t("providerBack"), value: "__back__" },
+    ],
     pageSize: 15,
   });
+
+  if (modelChoice === "__back__") return;
 
   const setVariant = await confirm({ message: t("setVariantQ"), default: false });
   let variant: string | undefined;
@@ -350,9 +355,13 @@ async function interactiveProvider(): Promise<void> {
     }
     const name = await select<string>({
       message: t("providerSelect"),
-      choices: providerNames.map((n) => ({ name: `${chalk.cyan(n)} (${(config.provider?.[n]?.models && Object.keys(config.provider[n].models).length) ?? 0} ${t("models")})`, value: n })),
+      choices: [
+        ...providerNames.map((n) => ({ name: `${chalk.cyan(n)} (${(config.provider?.[n]?.models && Object.keys(config.provider[n].models).length) ?? 0} ${t("models")})`, value: n })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     pageSize: 20,
     });
+    if (name === "__back__") return;
     const p = config.provider![name];
     console.log();
     console.log(chalk.bold(`${t("providers")}: ${p.name ?? name}`));
@@ -409,9 +418,13 @@ async function interactiveProvider(): Promise<void> {
     }
     const providerName = await select<string>({
       message: t("providerSelect"),
-      choices: providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+      choices: [
+        ...providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     pageSize: 20,
     });
+    if (providerName === "__back__") return;
     const modelId = await input({ message: t("modelID") });
     const provider = config.provider![providerName];
     if (provider.models?.[modelId]) {
@@ -450,9 +463,13 @@ async function interactiveProvider(): Promise<void> {
     }
     const providerName = await select<string>({
       message: t("providerSelect"),
-      choices: providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+      choices: [
+        ...providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     pageSize: 20,
     });
+    if (providerName === "__back__") return;
     const provider = config.provider![providerName];
     const modelKeys = Object.keys(provider.models ?? {});
     if (modelKeys.length === 0) {
@@ -462,9 +479,13 @@ async function interactiveProvider(): Promise<void> {
     }
     const modelId = await select<string>({
       message: t("modelRemoveSelect"),
-      choices: modelKeys.map((id) => ({ name: `${id} (${provider.models![id].name ?? id})`, value: id })),
+      choices: [
+        ...modelKeys.map((id) => ({ name: `${id} (${provider.models![id].name ?? id})`, value: id })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     pageSize: 20,
     });
+    if (modelId === "__back__") return;
     const confirmed = await confirm({ message: t("modelRemoveConfirm", { id: modelId }), default: false });
     if (confirmed) {
       delete provider.models![modelId];
@@ -483,9 +504,13 @@ async function interactiveProvider(): Promise<void> {
     }
     const name = await select<string>({
       message: t("providerRemove"),
-      choices: providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+      choices: [
+        ...providerNames.map((n) => ({ name: chalk.cyan(n), value: n })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     pageSize: 20,
     });
+    if (name === "__back__") return;
     const confirmed = await confirm({ message: t("providerRemoveConfirm", { name }), default: false });
     if (confirmed) {
       delete config.provider![name];
@@ -547,11 +572,15 @@ async function interactiveBackup(): Promise<void> {
     const target = await select<string>({
       message: t("backupSelectRestore"),
       pageSize: 20,
-      choices: backups.map((b) => ({
-        name: `${chalk.yellow(b.display)} (${((b.opencodeSize + b.ohmySize) / 1024).toFixed(1)}KB)`,
-        value: b.id,
-      })),
+      choices: [
+        ...backups.map((b) => ({
+          name: `${chalk.yellow(b.display)} (${((b.opencodeSize + b.ohmySize) / 1024).toFixed(1)}KB)`,
+          value: b.id,
+        })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     });
+    if (target === "__back__") return;
     const confirmed = await confirm({
       message: t("backupRestoreConfirm", { id: target }),
       default: false,
@@ -576,11 +605,15 @@ async function interactiveBackup(): Promise<void> {
     const target = await select<string>({
       message: t("backupSelectDelete"),
       pageSize: 20,
-      choices: backups.map((b) => ({
-        name: `${chalk.yellow(b.display)} (${((b.opencodeSize + b.ohmySize) / 1024).toFixed(1)}KB)`,
-        value: b.id,
-      })),
+      choices: [
+        ...backups.map((b) => ({
+          name: `${chalk.yellow(b.display)} (${((b.opencodeSize + b.ohmySize) / 1024).toFixed(1)}KB)`,
+          value: b.id,
+        })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
     });
+    if (target === "__back__") return;
     const confirmed = await confirm({
       message: t("backupDeleteConfirm", { id: target }),
       default: false,
@@ -721,14 +754,17 @@ async function interactiveConfig(): Promise<void> {
 
 async function interactiveLangSwitch(): Promise<void> {
   const current = getLang();
-  const lang = await select<Lang>({
+  const lang = await select<Lang | "__back__">({
     message: t("langSwitch"),
     choices: [
-      { name: `${t("langZh")}${current === "zh" ? t("langCurrent") : ""}`, value: "zh" },
-      { name: `${t("langEn")}${current === "en" ? t("langCurrent") : ""}`, value: "en" },
+      { name: `${t("langZh")}${current === "zh" ? t("langCurrent") : ""}`, value: "zh" as Lang | "__back__" },
+      { name: `${t("langEn")}${current === "en" ? t("langCurrent") : ""}`, value: "en" as Lang | "__back__" },
+      { name: t("providerBack"), value: "__back__" as const },
     ],
   pageSize: 20,
   });
+
+  if (lang === "__back__") return;
 
   setLang(lang);
   console.log(chalk.green(t("langChanged")));
@@ -748,8 +784,7 @@ export async function runInteractive(): Promise<void> {
   while (running) {
     try {
       console.clear();
-      console.log(chalk.bold(`  ${chalk.cyan("OC Helper")} ${chalk.gray(`v${currentVersion}`)}\n`));
-      const action = await mainMenu();
+      const action = await mainMenu(currentVersion);
 
       switch (action) {
         case "list":

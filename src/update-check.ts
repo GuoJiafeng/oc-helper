@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { request } from "node:https";
@@ -9,6 +9,21 @@ const CACHE_TTL_MS = 86_400_000;
 interface CacheData {
   lastCheck: number;
   latestVersion: string;
+}
+
+function parseSemver(v: string): [number, number, number] {
+  const parts = v.replace(/^v/, "").split(".").map(Number);
+  return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+}
+
+function isNewer(remote: string, local: string): boolean {
+  const r = parseSemver(remote);
+  const l = parseSemver(local);
+  for (let i = 0; i < 3; i++) {
+    if (r[i] > l[i]) return true;
+    if (r[i] < l[i]) return false;
+  }
+  return false;
 }
 
 export function getCurrentVersion(): string {
@@ -22,7 +37,7 @@ export function checkForUpdate(currentVersion: string): Promise<string | null> {
   const cached = readCache();
   if (cached && Date.now() - cached.lastCheck < CACHE_TTL_MS) {
     return Promise.resolve(
-      cached.latestVersion !== currentVersion ? cached.latestVersion : null,
+      isNewer(cached.latestVersion, currentVersion) ? cached.latestVersion : null,
     );
   }
 
@@ -42,7 +57,7 @@ export function checkForUpdate(currentVersion: string): Promise<string | null> {
             const data = JSON.parse(body) as { version: string };
             const latest = data.version;
             writeCache({ lastCheck: Date.now(), latestVersion: latest });
-            resolve(latest !== currentVersion ? latest : null);
+            resolve(isNewer(latest, currentVersion) ? latest : null);
           } catch {
             resolve(null);
           }
@@ -71,10 +86,7 @@ function readCache(): CacheData | null {
 function writeCache(data: CacheData): void {
   try {
     const dir = join(homedir(), ".config", "opencode");
-    if (!existsSync(dir)) {
-      const { mkdirSync } = require("node:fs");
-      mkdirSync(dir, { recursive: true });
-    }
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(CACHE_FILE, JSON.stringify(data), "utf-8");
   } catch {
   }
