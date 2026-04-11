@@ -25,6 +25,19 @@ import type {
   ModelConfig,
 } from "./types.js";
 
+function isUserCancel(err: unknown): boolean {
+  return err instanceof Error && "name" in err && (err as { name: string }).name === "ExitPromptError";
+}
+
+async function safeRun(fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (err) {
+    if (isUserCancel(err)) return;
+    throw err;
+  }
+}
+
 type MenuAction = "list" | "model-set" | "model-remove" | "model-view" | "provider" | "oc-provider" | "config" | "backup" | "lang" | "back" | "quit";
 
 async function pause(): Promise<void> {
@@ -59,9 +72,12 @@ async function interactiveList(): Promise<void> {
       { name: t("listModels"), value: "models" },
       { name: t("listAgents"), value: "agents" },
       { name: t("listCategories"), value: "categories" },
+      { name: t("providerBack"), value: "back" },
     ],
   pageSize: 20,
   });
+
+  if (section === "back") return;
 
   console.log();
 
@@ -146,9 +162,10 @@ async function interactiveModelSet(): Promise<void> {
   const allTargets = [
     ...Object.keys(ohmy.agents ?? {}).map((n) => ({ name: `${chalk.yellow(n)} ${chalk.gray(`(${t("agent")})`)}`, value: `agent:${n}` })),
     ...Object.keys(ohmy.categories ?? {}).map((n) => ({ name: `${chalk.yellow(n)} ${chalk.gray(`(${t("category")})`)}`, value: `category:${n}` })),
+    { name: t("providerBack"), value: "back" },
   ];
 
-  if (allTargets.length === 0) {
+  if (allTargets.length === 1) {
     console.log(formatWarning(t("noTargets")));
     await pause();
     return;
@@ -159,6 +176,8 @@ async function interactiveModelSet(): Promise<void> {
     choices: allTargets,
   pageSize: 20,
   });
+
+  if (targetChoice === "back") return;
 
   const [targetType, targetName] = targetChoice.split(":") as [string, string];
 
@@ -220,14 +239,19 @@ async function interactiveModelView(): Promise<void> {
     return;
   }
 
-  const target = await select<typeof targets[number]>({
+  const target = await select<typeof targets[number] | "back">({
     message: t("viewModelFor"),
-    choices: targets.map((tgt) => ({
-      name: `${chalk.yellow(tgt.name)} ${chalk.gray(`[${tgt.type}]`)} → ${chalk.cyan(tgt.model)}${tgt.variant ? chalk.gray(` (${tgt.variant})`) : ""}`,
-      value: tgt,
-    })),
+    choices: [
+      ...targets.map((tgt) => ({
+        name: `${chalk.yellow(tgt.name)} ${chalk.gray(`[${tgt.type}]`)} → ${chalk.cyan(tgt.model)}${tgt.variant ? chalk.gray(` (${tgt.variant})`) : ""}`,
+        value: tgt as typeof targets[number] | "back",
+      })),
+      { name: t("providerBack"), value: "back" as const },
+    ],
   pageSize: 20,
   });
+
+  if (target === "back") return;
 
   console.log();
   console.log(`  ${chalk.bold(target.name)} (${target.type})`);
@@ -264,14 +288,19 @@ async function interactiveModelRemove(): Promise<void> {
     return;
   }
 
-  const target = await select<{ name: string; type: "agent" | "category" }>({
+  const target = await select<{ name: string; type: "agent" | "category" } | "back">({
     message: t("removeSelectTarget"),
-    choices: entries.map((e) => ({
-      name: `${chalk.yellow(e.name)} ${chalk.gray(`[${t(e.type)}]`)}`,
-      value: e,
-    })),
+    choices: [
+      ...entries.map((e) => ({
+        name: `${chalk.yellow(e.name)} ${chalk.gray(`[${t(e.type)}]`)}`,
+        value: e as { name: string; type: "agent" | "category" } | "back",
+      })),
+      { name: t("providerBack"), value: "back" as const },
+    ],
   pageSize: 20,
   });
+
+  if (target === "back") return;
 
   const confirmed = await confirm({
     message: t("removeConfirm", { type: t(target.type), name: target.name }),
@@ -724,31 +753,31 @@ export async function runInteractive(): Promise<void> {
 
       switch (action) {
         case "list":
-          await interactiveList();
+          await safeRun(interactiveList);
           break;
         case "model-set":
-          await interactiveModelSet();
+          await safeRun(interactiveModelSet);
           break;
         case "model-remove":
-          await interactiveModelRemove();
+          await safeRun(interactiveModelRemove);
           break;
         case "model-view":
-          await interactiveModelView();
+          await safeRun(interactiveModelView);
           break;
         case "provider":
-          await interactiveProvider();
+          await safeRun(interactiveProvider);
           break;
         case "oc-provider":
-          await interactiveOcProvider();
+          await safeRun(interactiveOcProvider);
           break;
         case "config":
-          await interactiveConfig();
+          await safeRun(interactiveConfig);
           break;
         case "backup":
-          await interactiveBackup();
+          await safeRun(interactiveBackup);
           break;
         case "lang":
-          await interactiveLangSwitch();
+          await safeRun(interactiveLangSwitch);
           break;
         case "quit":
           running = false;
@@ -757,7 +786,7 @@ export async function runInteractive(): Promise<void> {
           running = false;
       }
     } catch (err) {
-      if (err && typeof err === "object" && "name" in err && (err as { name: string }).name === "ExitPromptError") {
+      if (isUserCancel(err)) {
         running = false;
       } else {
         console.log(chalk.red(`${t("error")}: ${(err as Error).message}`));
