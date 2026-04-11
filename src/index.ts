@@ -426,7 +426,7 @@ function main(): void {
   const program = new Command();
 
   program
-    .name("oc")
+    .name("oc-helper-cli")
     .description("OC Helper - Manage OpenCode configuration")
     .version("1.0.0")
     .showHelpAfterError();

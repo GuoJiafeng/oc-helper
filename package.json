@@ -1,15 +1,49 @@
 {
-  "name": "oc-helper",
+  "name": "oc-helper-cli",
   "version": "1.0.0",
-  "description": "OC Helper - CLI tool to manage OpenCode and Oh-My-OpenCode configuration",
+  "description": "OC Helper - CLI tool to manage OpenCode and Oh-My-OpenCode configuration with interactive menus, backup & restore, Chinese/English bilingual interface",
   "type": "module",
   "bin": {
-    "oc": "./dist/index.js"
+    "oc-helper-cli": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "opencode",
+    "oh-my-opencode",
+    "cli",
+    "configuration",
+    "model-management",
+    "ai",
+    "llm",
+    "agent",
+    "provider",
+    "backup",
+    "typescript",
+    "interactive",
+    "chinese",
+    "bilingual"
+  ],
+  "author": "GuoJiafeng <675222890@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuoJiafeng/oc-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GuoJiafeng/oc-helper/issues"
+  },
+  "homepage": "https://github.com/GuoJiafeng/oc-helper#readme",
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "commander": "^13.1.0",
