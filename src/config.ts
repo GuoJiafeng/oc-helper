@@ -1,10 +1,18 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { execFileSync } from "node:child_process";
 import type { CollectedModel, OpenCodeConfig, OhMyOpenAgentConfig, ModelConfig } from "./types.js";
 
 const CONFIG_DIR = join(homedir(), ".config", "opencode");
+const OMO_CACHE_DIR = join(homedir(), ".cache", "oh-my-opencode");
+const PROVIDER_MODELS_CACHE = join(OMO_CACHE_DIR, "provider-models.json");
+
+interface CachedModelEntry {
+  id: string;
+  name?: string;
+  limit?: { context?: number; output?: number; input?: number };
+  capabilities?: { reasoning?: boolean };
+}
 
 export function getConfigDir(): string {
   return CONFIG_DIR;
@@ -58,22 +66,34 @@ export function getAllModels(): CollectedModel[] {
   }
 
   try {
-    const output = execFileSync("opencode", ["models"], {
-      stdio: "pipe",
-      timeout: 10000,
-      encoding: "utf-8",
-    });
-    for (const line of output.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.includes("/")) continue;
-      const idx = trimmed.indexOf("/");
-      const provider = trimmed.slice(0, idx);
-      const modelId = trimmed.slice(idx + 1);
-      const key = `${provider}/${modelId}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const emptyConfig: ModelConfig = {};
-      models.push({ provider, modelId, modelConfig: emptyConfig });
+    if (existsSync(PROVIDER_MODELS_CACHE)) {
+      const raw = readFileSync(PROVIDER_MODELS_CACHE, "utf-8");
+      const data = JSON.parse(raw) as {
+        models: Record<string, CachedModelEntry[]>;
+        connected?: string[];
+        updatedAt?: string;
+      };
+
+      for (const [provider, entries] of Object.entries(data.models ?? {})) {
+        for (const entry of entries) {
+          const key = `${provider}/${entry.id}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+
+          const modelConfig: ModelConfig = {};
+          if (entry.name) modelConfig.name = entry.name;
+          if (entry.limit) {
+            modelConfig.limit = {};
+            if (entry.limit.context) modelConfig.limit.context = entry.limit.context;
+            if (entry.limit.output) modelConfig.limit.output = entry.limit.output;
+          }
+          if (entry.capabilities?.reasoning) {
+            modelConfig.options = { thinking: { type: "enabled" } };
+          }
+
+          models.push({ provider, modelId: entry.id, modelConfig });
+        }
+      }
     }
   } catch {}
 
