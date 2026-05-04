@@ -6,6 +6,7 @@ import type { CollectedModel, OpenCodeConfig, OhMyOpenAgentConfig, ModelConfig }
 const CONFIG_DIR = join(homedir(), ".config", "opencode");
 const OMO_CACHE_DIR = join(homedir(), ".cache", "oh-my-opencode");
 const PROVIDER_MODELS_CACHE = join(OMO_CACHE_DIR, "provider-models.json");
+const CONNECTED_PROVIDERS_CACHE = join(OMO_CACHE_DIR, "connected-providers.json");
 
 interface CachedModelEntry {
   id: string;
@@ -66,7 +67,8 @@ export function getAllModels(): CollectedModel[] {
   }
 
   try {
-    if (existsSync(PROVIDER_MODELS_CACHE)) {
+    const connected = readConnectedProviders();
+    if (connected.size > 0 && existsSync(PROVIDER_MODELS_CACHE)) {
       const raw = readFileSync(PROVIDER_MODELS_CACHE, "utf-8");
       const data = JSON.parse(raw) as {
         models: Record<string, CachedModelEntry[]>;
@@ -75,6 +77,7 @@ export function getAllModels(): CollectedModel[] {
       };
 
       for (const [provider, entries] of Object.entries(data.models ?? {})) {
+        if (!connected.has(provider)) continue;
         for (const entry of entries) {
           const key = `${provider}/${entry.id}`;
           if (seen.has(key)) continue;
@@ -98,6 +101,17 @@ export function getAllModels(): CollectedModel[] {
   } catch {}
 
   return models;
+}
+
+function readConnectedProviders(): Set<string> {
+  try {
+    if (existsSync(CONNECTED_PROVIDERS_CACHE)) {
+      const raw = readFileSync(CONNECTED_PROVIDERS_CACHE, "utf-8");
+      const data = JSON.parse(raw) as { connected: string[] };
+      return new Set(data.connected ?? []);
+    }
+  } catch {}
+  return new Set();
 }
 
 export function findByDotPath(obj: unknown, path: string): unknown {
