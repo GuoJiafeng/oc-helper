@@ -161,8 +161,14 @@ async function interactiveList(): Promise<void> {
 async function interactiveModelSet(): Promise<void> {
   const ohmy = readOhMyConfig();
   const allTargets = [
-    ...Object.keys(ohmy.agents ?? {}).map((n) => ({ name: `${chalk.yellow(n)} ${chalk.gray(`(${t("agent")})`)}`, value: `agent:${n}` })),
-    ...Object.keys(ohmy.categories ?? {}).map((n) => ({ name: `${chalk.yellow(n)} ${chalk.gray(`(${t("category")})`)}`, value: `category:${n}` })),
+    ...Object.entries(ohmy.agents ?? {}).map(([n, e]) => ({
+      name: `${chalk.yellow(n)} ${chalk.gray(`(${t("agent")})`)} ${e.model ? chalk.dim(`→ ${e.model}`) : ""}`,
+      value: `agent:${n}`,
+    })),
+    ...Object.entries(ohmy.categories ?? {}).map(([n, e]) => ({
+      name: `${chalk.yellow(n)} ${chalk.gray(`(${t("category")})`)} ${e.model ? chalk.dim(`→ ${e.model}`) : ""}`,
+      value: `category:${n}`,
+    })),
     { name: t("providerBack"), value: "back" },
   ];
 
@@ -657,6 +663,23 @@ async function interactiveOcProvider(): Promise<void> {
     } catch (err) {
       console.log(formatError(t("ocProviderFailed", { error: (err as Error).message })));
     }
+    console.log();
+    const ohmy = readOhMyConfig();
+    const targets = [
+      ...Object.entries(ohmy.agents ?? {}).map(([n, e]) => ({ name: n, type: t("agent"), model: e.model, variant: e.variant })),
+      ...Object.entries(ohmy.categories ?? {}).map(([n, e]) => ({ name: n, type: t("category"), model: e.model, variant: e.variant })),
+    ];
+    if (targets.length > 0) {
+      const rows = targets.map((tgt) => [
+        chalk.yellow(tgt.name),
+        chalk.gray(tgt.type),
+        chalk.cyan(tgt.model ?? "-"),
+        tgt.variant ?? "-",
+      ]);
+      console.log(chalk.bold(t("modelAssignments")));
+      console.log(formatTable([t("colName"), t("colType"), t("colModel"), t("colVariant")], rows));
+      console.log();
+    }
     await pause();
     return;
   }
@@ -667,6 +690,22 @@ async function interactiveOcProvider(): Promise<void> {
       console.log(output);
       console.log();
     } catch {}
+    const ohmyLogin = readOhMyConfig();
+    const loginTargets = [
+      ...Object.entries(ohmyLogin.agents ?? {}).map(([n, e]) => ({ name: n, type: t("agent"), model: e.model, variant: e.variant })),
+      ...Object.entries(ohmyLogin.categories ?? {}).map(([n, e]) => ({ name: n, type: t("category"), model: e.model, variant: e.variant })),
+    ];
+    if (loginTargets.length > 0) {
+      const rows = loginTargets.map((tgt) => [
+        chalk.yellow(tgt.name),
+        chalk.gray(tgt.type),
+        chalk.cyan(tgt.model ?? "-"),
+        tgt.variant ?? "-",
+      ]);
+      console.log(chalk.bold(t("modelAssignments")));
+      console.log(formatTable([t("colName"), t("colType"), t("colModel"), t("colVariant")], rows));
+      console.log();
+    }
     console.log(chalk.gray(t("ocProviderRunning")));
     runOpenCodeProvidersLogin();
     await pause();
@@ -679,6 +718,22 @@ async function interactiveOcProvider(): Promise<void> {
       console.log(output);
       console.log();
     } catch {}
+    const ohmyLogout = readOhMyConfig();
+    const logoutTargets = [
+      ...Object.entries(ohmyLogout.agents ?? {}).map(([n, e]) => ({ name: n, type: t("agent"), model: e.model, variant: e.variant })),
+      ...Object.entries(ohmyLogout.categories ?? {}).map(([n, e]) => ({ name: n, type: t("category"), model: e.model, variant: e.variant })),
+    ];
+    if (logoutTargets.length > 0) {
+      const rows = logoutTargets.map((tgt) => [
+        chalk.yellow(tgt.name),
+        chalk.gray(tgt.type),
+        chalk.cyan(tgt.model ?? "-"),
+        tgt.variant ?? "-",
+      ]);
+      console.log(chalk.bold(t("modelAssignments")));
+      console.log(formatTable([t("colName"), t("colType"), t("colModel"), t("colVariant")], rows));
+      console.log();
+    }
     const connected = Array.from(readConnectedProviders());
     if (connected.length === 0) {
       console.log(formatWarning(t("noProviders")));

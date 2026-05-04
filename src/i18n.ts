@@ -54,6 +54,7 @@ type Strings = {
   colThinking: string;
   colModel: string;
   colVariant: string;
+  colType: string;
   colAgent: string;
   colCategory: string;
 
@@ -125,6 +126,8 @@ type Strings = {
   modelRemoveNotFound: string;
   modelRemovedAgent: string;
   modelRemovedCategory: string;
+
+  modelAssignments: string;
 
   switchInvalidType: string;
 
@@ -241,6 +244,7 @@ const zh: Strings = {
   colThinking: "思维链",
   colModel: "模型",
   colVariant: "变体",
+  colType: "类型",
   colAgent: "智能体",
   colCategory: "分类",
 
@@ -312,6 +316,8 @@ const zh: Strings = {
   modelRemoveNotFound: "在智能体或分类中未找到 \"{name}\"。",
   modelRemovedAgent: "已删除智能体 {name}",
   modelRemovedCategory: "已删除分类 {name}",
+
+  modelAssignments: "模型分配",
 
   switchInvalidType: "类型必须是 \"agent\" 或 \"category\"，实际为 \"{type}\"",
 
@@ -428,6 +434,7 @@ const en: Strings = {
   colThinking: "Thinking",
   colModel: "Model",
   colVariant: "Variant",
+  colType: "Type",
   colAgent: "Agent",
   colCategory: "Category",
 
@@ -499,6 +506,8 @@ const en: Strings = {
   modelRemoveNotFound: "\"{name}\" not found in agents or categories.",
   modelRemovedAgent: "Removed agent {name}",
   modelRemovedCategory: "Removed category {name}",
+
+  modelAssignments: "Model Assignments",
 
   switchInvalidType: "Type must be \"agent\" or \"category\", got \"{type}\"",
 
