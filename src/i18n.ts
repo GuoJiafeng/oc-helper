@@ -174,6 +174,7 @@ type Strings = {
   ocProviderList: string;
   ocProviderLogin: string;
   ocProviderLogout: string;
+  ocProviderLogoutSelect: string;
   ocProviderBack: string;
   ocProviderRunning: string;
   ocProviderSuccess: string;
@@ -360,6 +361,7 @@ const zh: Strings = {
   ocProviderList: "查看内置提供商列表",
   ocProviderLogin: "登录提供商",
   ocProviderLogout: "登出提供商",
+  ocProviderLogoutSelect: "选择要登出的提供商",
   ocProviderBack: "返回",
   ocProviderRunning: "正在执行...",
   ocProviderSuccess: "命令执行完成。",
@@ -546,6 +548,7 @@ const en: Strings = {
   ocProviderList: "List built-in providers",
   ocProviderLogin: "Login to a provider",
   ocProviderLogout: "Logout from a provider",
+  ocProviderLogoutSelect: "Select provider to logout from",
   ocProviderBack: "Back",
   ocProviderRunning: "Running...",
   ocProviderSuccess: "Command completed.",

@@ -103,7 +103,7 @@ export function getAllModels(): CollectedModel[] {
   return models;
 }
 
-function readConnectedProviders(): Set<string> {
+export function readConnectedProviders(): Set<string> {
   try {
     if (existsSync(CONNECTED_PROVIDERS_CACHE)) {
       const raw = readFileSync(CONNECTED_PROVIDERS_CACHE, "utf-8");

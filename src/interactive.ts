@@ -6,6 +6,7 @@ import {
   readOpenCodeConfig,
   writeOhMyConfig,
   writeOpenCodeConfig,
+  readConnectedProviders,
 } from "./config.js";
 import {
   formatContextSize,
@@ -678,8 +679,23 @@ async function interactiveOcProvider(): Promise<void> {
       console.log(output);
       console.log();
     } catch {}
+    const connected = Array.from(readConnectedProviders());
+    if (connected.length === 0) {
+      console.log(formatWarning(t("noProviders")));
+      await pause();
+      return;
+    }
+    const provider = await select<string>({
+      message: t("ocProviderLogoutSelect"),
+      choices: [
+        ...connected.map((p) => ({ name: chalk.cyan(p), value: p })),
+        { name: t("providerBack"), value: "__back__" },
+      ],
+      pageSize: 15,
+    });
+    if (provider === "__back__") return;
     console.log(chalk.gray(t("ocProviderRunning")));
-    runOpenCodeProvidersLogout();
+    runOpenCodeProvidersLogout(provider);
     await pause();
     return;
   }
